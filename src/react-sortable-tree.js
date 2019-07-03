@@ -422,7 +422,10 @@ class ReactSortableTree extends Component {
         draggingTreeData: changeNodeAtPath({
           treeData: newDraggingTreeData,
           path: expandedParentPath.slice(0, -1),
-          newNode: ({ node }) => ({ ...node, expanded: true }),
+          newNode: ({ node }) => ({
+            ...node,
+            expanded: true,
+          }),
           getNodeKey: this.props.getNodeKey,
         }),
         // reset the scroll focus so it doesn't jump back
@@ -511,18 +514,19 @@ class ReactSortableTree extends Component {
       callback: ({ node, path, lowerSiblingCounts, treeIndex }) => {
         // If the node has children defined by a function, and is either expanded
         //  or set to load even before expansion, run the function.
-        if (
-          node.children &&
-          typeof node.children === 'function' &&
-          (node.expanded || props.loadCollapsedLazyChildren)
-        ) {
+        const shouldLoadAndMerge =
+          typeof node.loadAndMerge === 'function' && !node.loaded;
+        const result =
+          shouldLoadAndMerge &&
+          (node.expanded || props.loadCollapsedLazyChildren);
+
+        if (result) {
           // Call the children fetching function
-          node.children({
+          node.loadAndMerge({
             node,
             path,
             lowerSiblingCounts,
             treeIndex,
-
             // Provide a helper to append the new data when it is received
             done: childrenArray =>
               props.onChange(
@@ -535,7 +539,8 @@ class ReactSortableTree extends Component {
                     oldNode === node
                       ? {
                           ...oldNode,
-                          children: childrenArray,
+                          children: (node.children || []).concat(childrenArray),
+                          loaded: true,
                         }
                       : oldNode,
                   getNodeKey: props.getNodeKey,
