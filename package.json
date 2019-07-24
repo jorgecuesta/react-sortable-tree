@@ -6,6 +6,7 @@
     "start": "parcel website/index.html",
     "prebuild": "npm run lint && npm run clean",
     "build": "rollup -c",
+    "install:build": "rollup -c",
     "build:storybook": "npm run clean:storybook && build-storybook -o build/storybook",
     "build:website": "npm run clean:website && parcel build website/index.html -d build --public-url /react-sortable-tree/",
     "clean": "rimraf dist",
@@ -19,7 +20,7 @@
     "test:watch": "jest --watchAll",
     "storybook": "start-storybook -p ${PORT:-3001} -h 0.0.0.0",
     "deploy": "gh-pages -d build",
-    "postinstall": "npm run build && rimraf src"
+    "postinstall": "npm run install:build && rimraf src"
   },
   "main": "dist/index.cjs.js",
   "module": "dist/index.esm.js",
