@@ -197,7 +197,12 @@ NodeRendererDefault.defaultProps = {
 };
 
 NodeRendererDefault.propTypes = {
-  node: PropTypes.shape({}).isRequired,
+  node: PropTypes.shape({
+    title: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+    subtitle: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
+    children: PropTypes.oneOfType([PropTypes.func, PropTypes.array]),
+    expanded: PropTypes.bool,
+  }).isRequired,
   title: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
   subtitle: PropTypes.oneOfType([PropTypes.func, PropTypes.node]),
   path: PropTypes.arrayOf(

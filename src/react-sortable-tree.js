@@ -260,12 +260,7 @@ class ReactSortableTree extends Component {
     depth,
     minimumTreeIndex,
   }) {
-    const {
-      treeData,
-      treeIndex,
-      path,
-      parentNode: nextParentNode,
-    } = insertNode({
+    const insertedNode = insertNode({
       treeData: this.state.draggingTreeData,
       newNode: node,
       depth,
@@ -273,6 +268,15 @@ class ReactSortableTree extends Component {
       expandParent: true,
       getNodeKey: this.props.getNodeKey,
     });
+
+    if (!insertedNode) return;
+
+    const {
+      treeData,
+      treeIndex,
+      path,
+      parentNode: nextParentNode,
+    } = insertedNode;
 
     this.props.onChange(treeData);
 
@@ -403,6 +407,10 @@ class ReactSortableTree extends Component {
         expandParent: true,
         getNodeKey: this.props.getNodeKey,
       });
+
+      if (!addedResult) {
+        return undefined;
+      }
 
       const rows = this.getRows(addedResult.treeData);
       const expandedParentPath = rows[addedResult.treeIndex].path;
@@ -645,15 +653,19 @@ class ReactSortableTree extends Component {
         getNodeKey,
       });
 
-      const swapTo = draggedMinimumTreeIndex;
-      swapFrom = addedResult.treeIndex;
-      swapLength = 1 + memoizedGetDescendantCount({ node: draggedNode });
-      rows = slideRows(
-        this.getRows(addedResult.treeData),
-        swapFrom,
-        swapTo,
-        swapLength
-      );
+      if (addedResult) {
+        const swapTo = draggedMinimumTreeIndex;
+        swapFrom = addedResult.treeIndex;
+        swapLength = 1 + memoizedGetDescendantCount({ node: draggedNode });
+        rows = slideRows(
+          this.getRows(addedResult.treeData),
+          swapFrom,
+          swapTo,
+          swapLength
+        );
+      } else {
+        rows = this.getRows(treeData);
+      }
     } else {
       rows = this.getRows(treeData);
     }
@@ -770,7 +782,9 @@ class ReactSortableTree extends Component {
 }
 
 ReactSortableTree.propTypes = {
-  dragDropManager: PropTypes.shape({}).isRequired,
+  dragDropManager: PropTypes.shape({
+    getMonitor: PropTypes.func,
+  }).isRequired,
 
   // Tree data in the following format:
   // [{title: 'main', subtitle: 'sub'}, { title: 'value2', expanded: true, children: [{ title: 'value3') }] }]
