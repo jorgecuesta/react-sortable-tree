@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
+<a name="2.6.4"></a>
+## [2.6.4](https://github.com/frontend-collective/react-sortable-tree/compare/v2.6.3...v2.6.4) (2019-07-24)
+
+
+
 <a name="2.6.3"></a>
 ## [2.6.3](https://github.com/frontend-collective/react-sortable-tree/compare/v2.7.2...v2.6.3) (2019-07-24)
 
