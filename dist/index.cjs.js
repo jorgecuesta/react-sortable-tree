@@ -644,25 +644,21 @@ function getNodeDataAtTreeIndexOrNextIndex(_ref) {
   var childCount = node.children.length;
 
   for (var i = 0; i < childCount; i += 1) {
-    var childNode = node.children[i];
+    var result = getNodeDataAtTreeIndexOrNextIndex({
+      ignoreCollapsed: ignoreCollapsed,
+      getNodeKey: getNodeKey,
+      targetIndex: targetIndex,
+      node: node.children[i],
+      currentIndex: childIndex,
+      lowerSiblingCounts: [].concat(_toConsumableArray(lowerSiblingCounts), [childCount - i - 1]),
+      path: selfPath
+    });
 
-    if (childNode) {
-      var result = getNodeDataAtTreeIndexOrNextIndex({
-        ignoreCollapsed: ignoreCollapsed,
-        getNodeKey: getNodeKey,
-        targetIndex: targetIndex,
-        node: childNode,
-        currentIndex: childIndex,
-        lowerSiblingCounts: [].concat(_toConsumableArray(lowerSiblingCounts), [childCount - i - 1]),
-        path: selfPath
-      });
-
-      if (result.node) {
-        return result;
-      }
-
-      childIndex = result.nextIndex;
+    if (result.node) {
+      return result;
     }
+
+    childIndex = result.nextIndex;
   } // If the target node is not found, return the farthest traversed index
 
 
@@ -749,23 +745,19 @@ function walkDescendants(_ref3) {
 
   if (typeof node.children !== 'function') {
     for (var i = 0; i < childCount; i += 1) {
-      var childNode = node.children[i];
+      childIndex = walkDescendants({
+        callback: callback,
+        getNodeKey: getNodeKey,
+        ignoreCollapsed: ignoreCollapsed,
+        node: node.children[i],
+        parentNode: isPseudoRoot ? null : node,
+        currentIndex: childIndex + 1,
+        lowerSiblingCounts: [].concat(_toConsumableArray(lowerSiblingCounts), [childCount - i - 1]),
+        path: selfPath
+      }); // Cut walk short if the callback returned false
 
-      if (childNode) {
-        childIndex = walkDescendants({
-          callback: callback,
-          getNodeKey: getNodeKey,
-          ignoreCollapsed: ignoreCollapsed,
-          node: node.children[i],
-          parentNode: isPseudoRoot ? null : node,
-          currentIndex: childIndex + 1,
-          lowerSiblingCounts: [].concat(_toConsumableArray(lowerSiblingCounts), [childCount - i - 1]),
-          path: selfPath
-        }); // Cut walk short if the callback returned false
-
-        if (childIndex === false) {
-          return false;
-        }
+      if (childIndex === false) {
+        return false;
       }
     }
   }
@@ -1355,11 +1347,6 @@ function addNodeAtDepthAndIndex(_ref21) {
 
 
   if (currentIndex >= minimumTreeIndex - 1 || isLastChild && !(node.children && node.children.length)) {
-    if (typeof node.children === 'function') {
-      // Cannot add to children defined by a function
-      return undefined;
-    }
-
     var extraNodeProps = expandParent ? {
       expanded: true
     } : {};
@@ -1478,10 +1465,6 @@ function addNodeAtDepthAndIndex(_ref21) {
 
       });
 
-      if (!mapResult) {
-        return undefined;
-      }
-
       if ('insertedTreeIndex' in mapResult) {
         insertedTreeIndex = mapResult.insertedTreeIndex;
         parentNode = mapResult.parentNode;
@@ -1570,7 +1553,6 @@ function insertNode(_ref22) {
   });
 
   if (!('insertedTreeIndex' in insertResult)) {
-    // No suitable position found to insert
     throw new Error('No suitable position found to insert.');
   }
 
@@ -3199,12 +3181,14 @@ function (_Component) {
               path = _ref15.path,
               lowerSiblingCounts = _ref15.lowerSiblingCounts,
               treeIndex = _ref15.treeIndex;
-
           // If the node has children defined by a function, and is either expanded
           //  or set to load even before expansion, run the function.
-          if (node.children && typeof node.children === 'function' && (node.expanded || props.loadCollapsedLazyChildren)) {
+          var shouldLoadAndMerge = typeof node.loadAndMerge === 'function' && !node.loaded;
+          var result = shouldLoadAndMerge && (node.expanded || props.loadCollapsedLazyChildren);
+
+          if (result) {
             // Call the children fetching function
-            node.children({
+            node.loadAndMerge({
               node: node,
               path: path,
               lowerSiblingCounts: lowerSiblingCounts,
@@ -3219,7 +3203,8 @@ function (_Component) {
                     return (// Only replace the old node if it's the one we set off to find children
                       //  for in the first place
                       oldNode === node ? _objectSpread2({}, oldNode, {
-                        children: childrenArray
+                        children: (node.children || []).concat(childrenArray),
+                        loaded: true
                       }) : oldNode
                     );
                   },
