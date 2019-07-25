@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file. See [standard-version](https://github.com/conventional-changelog/standard-version) for commit guidelines.
 
-### Bug Fixes
+<a name="2.6.3"></a>
+## [2.6.3](https://github.com/frontend-collective/react-sortable-tree/compare/v2.6.2...v2.6.3) (2019-07-25)
 
-* Drag and Drop over nodes that are using lazy load.
+
 
 <a name="2.6.2"></a>
 ## [2.6.2](https://github.com/frontend-collective/react-sortable-tree/compare/v2.6.1...v2.6.2) (2019-03-21)
